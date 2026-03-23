@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lukka · Tu dinero, bajo control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink:          #1e1b4b;
+            --ink-light:    #4c1d95;
+            --ink-muted:    #8b5cf6;
+            --paper:        #faf5ff;
+            --card:         #ffffff;
+            --accent:       #7c3aed;
+            --accent-soft:  #f3e8ff;
+            --accent-dark:  #5b21b6;
+            --gold:         #f59e0b;
+            --border:       #ede9fe;
+            --success:      #10b981;
+            --warning:      #f59e0b;
+            --danger:       #ef4444;
+            --shadow:       0 4px 20px rgba(124,58,237,.08), 0 1px 3px rgba(124,58,237,.05);
+            --shadow-sm:    0 2px 8px rgba(124,58,237,.05);
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+        /* ── PÁGINAS ── */
+        .page { display: none; min-height: 100vh; }
+        .page.active { display: flex; flex-direction: column; }
+
+        /* ── ANIMACIONES ── */
+        @keyframes rise   { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes spin   { to { transform:rotate(360deg); } }
+        @keyframes pulse  { 0%,100%{box-shadow:0 0 0 2px rgba(16,185,129,.15);} 50%{box-shadow:0 0 0 6px rgba(16,185,129,.07);} }
+        @keyframes bar-in { from { width:0%; } }
+        @keyframes shake  { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-6px);} 40%,80%{transform:translateX(6px);} }
+
+        /* ════════════════════════════════════
+           AUTH
+        ════════════════════════════════════ */
+        .auth-page {
+            background: #0f0a1e;
+            background-image:
+                radial-gradient(ellipse 80% 70% at 80% -10%, rgba(124,58,237,.35) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 0% 100%, rgba(92,33,182,.25) 0%, transparent 50%),
+                radial-gradient(ellipse 40% 40% at 50% 50%, rgba(139,92,246,.08) 0%, transparent 70%);
+            align-items: center; justify-content: center; padding: 24px;
+        }
+
+        .auth-box { width:100%; max-width:420px; animation: rise .6s cubic-bezier(.16,1,.3,1) both; }
+
+        .auth-logo { text-align:center; margin-bottom:32px; }
+        .auth-logo-mark {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:56px; height:56px; border-radius:16px; font-size:24px; margin-bottom:12px;
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            box-shadow: 0 8px 24px rgba(124,58,237,.45);
+        }
+        .auth-logo-name { font-family:'Syne',sans-serif; font-size:1.5rem; color:white; }
+        .auth-logo-name span { color:var(--accent); font-style:italic; }
+        .auth-logo-sub { font-size:11px; color:rgba(255,255,255,.35); letter-spacing:.12em; text-transform:uppercase; margin-top:3px; }
+
+        .auth-card {
+            background: rgba(255,255,255,.04); border:1px solid rgba(139,92,246,.2);
+            border-radius:28px; padding:40px 36px; backdrop-filter:blur(24px);
+            box-shadow: 0 25px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
+        }
+        .auth-title    { font-family:'Syne',sans-serif; font-size:1.8rem; color:white; margin-bottom:5px; }
+        .auth-subtitle { font-size:13px; color:rgba(255,255,255,.4); margin-bottom:26px; }
+
+        .auth-error {
+            background:rgba(192,57,43,.15); border:1px solid rgba(192,57,43,.3);
+            border-radius:10px; padding:11px 14px; font-size:13px; color:#ff9080;
+            margin-bottom:16px; display:none; animation: shake .35s ease;
+        }
+
+        .field { margin-bottom:18px; }
+        .field label { display:block; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.45); margin-bottom:8px; }
+        .input-wrap { position:relative; }
+        .input-wrap .ico { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:15px; pointer-events:none; }
+
+        .auth-card input {
+            width:100%; padding:13px 14px 13px 40px;
+            background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.1);
+            border-radius:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; color:white; outline:none;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+        }
+        .auth-card input::placeholder { color:rgba(255,255,255,.22); }
+        .auth-card input:focus { border-color:#7c3aed; background:rgba(124,58,237,.07); box-shadow:0 0 0 3px rgba(124,58,237,.18); }
+
+        .auth-divider { height:1px; background:rgba(255,255,255,.08); margin:22px 0; }
+
+        .btn-auth {
+            width:100%; padding:14px;
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 50%, #4c1d95 100%);
+            color:white; border:none; border-radius:14px;
+            font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; font-weight:700; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            box-shadow: 0 8px 24px rgba(124,58,237,.45);
+            transition: transform .15s, box-shadow .2s, opacity .2s;
+            letter-spacing:.01em;
+        }
+        .btn-auth:hover { transform:translateY(-2px); box-shadow:0 14px 32px rgba(124,58,237,.55); }
+        .btn-auth:active { transform:translateY(0); }
+        .btn-auth:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+        .auth-switch { text-align:center; margin-top:20px; font-size:13px; color:rgba(255,255,255,.38); }
+        .auth-switch a { color:#a78bfa; font-weight:600; cursor:pointer; }
+        .auth-switch a:hover { opacity:.8; }
+
+        /* ════════════════════════════════════
+           APP
+        ════════════════════════════════════ */
+        .app-page {
+            background: var(--paper);
+            background-image:
+                radial-gradient(ellipse 60% 40% at 10% 0%, rgba(124,58,237,.07) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 30% at 90% 100%, rgba(139,92,246,.05) 0%, transparent 55%);
+        }
+
+        /* NAV */
+        nav {
+            position:sticky; top:0; z-index:100;
+            background:rgba(250,245,255,.92); backdrop-filter:blur(20px);
+            border-bottom:1px solid rgba(124,58,237,.1);
+            display:flex; align-items:center; justify-content:space-between;
+            padding:0 20px; height:64px; gap:12px;
+            box-shadow: 0 1px 0 rgba(124,58,237,.06), 0 4px 16px rgba(124,58,237,.04);
+        }
+        .nav-brand { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; color:var(--ink); white-space:nowrap; letter-spacing:-.02em; }
+        .nav-brand span { color:var(--accent); font-style:italic; }
+
+        .nav-tabs {
+            display:flex; gap:2px; background:rgba(124,58,237,.08);
+            padding:4px; border-radius:14px; flex:1; max-width:340px;
+        }
+        .nav-tab {
+            flex:1; padding:7px 8px; border-radius:10px; font-size:12px; font-weight:600;
+            color:var(--ink-muted); cursor:pointer; border:none; background:transparent;
+            font-family:'Plus Jakarta Sans',sans-serif; transition:all .2s; white-space:nowrap;
+        }
+        .nav-tab.active { background:white; color:var(--accent); box-shadow:0 2px 8px rgba(124,58,237,.15); }
+
+        .nav-user {
+            display:flex; align-items:center; gap:8px;
+            background:white; border:1px solid var(--border);
+            border-radius:100px; padding:5px 12px 5px 5px; cursor:pointer;
+            transition:box-shadow .2s;
+        }
+        .nav-user:hover { box-shadow:var(--shadow-sm); }
+        .nav-avatar {
+            width:32px; height:32px; border-radius:50%; flex-shrink:0;
+            background:linear-gradient(135deg,#7c3aed,#5b21b6);
+            display:flex; align-items:center; justify-content:center;
+            font-size:11px; font-weight:800; color:white;
+            box-shadow: 0 2px 8px rgba(124,58,237,.4);
+        }
+        .nav-uname { font-size:12px; font-weight:600; color:var(--ink); max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+        /* MAIN */
+        .main { padding:24px 20px 40px; max-width:540px; margin:0 auto; flex:1; }
+
+        .section { display:none; }
+        .section.active { display:block; animation:rise .4s cubic-bezier(.16,1,.3,1) both; }
+
+        /* CARD */
+        .card { background:var(--card); border-radius:24px; box-shadow:var(--shadow); border:1px solid rgba(124,58,237,.08); overflow:hidden; margin-bottom:16px; }
+        .card-header { padding:22px 24px 0; }
+        .card-body   { padding:24px; }
+
+        .pill { display:inline-flex; align-items:center; gap:5px; background:var(--accent-soft); color:var(--accent); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 13px; border-radius:100px; margin-bottom:10px; border:1px solid rgba(124,58,237,.15); }
+        .card-title { font-family:'Syne',sans-serif; font-size:1.6rem; color:var(--ink); margin-bottom:4px; }
+        .card-title em { font-style:normal; color:var(--accent); }
+        .card-sub { font-size:13px; color:var(--ink-light); margin-bottom:4px; }
+
+        /* FORM FIELDS (light) */
+        .fld { margin-bottom:18px; }
+        .fld label { display:block; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-light); margin-bottom:8px; }
+
+        .sel-wrap { position:relative; }
+        .sel-wrap::after { content:''; position:absolute; right:14px; top:50%; transform:translateY(-50%); width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid var(--ink-light); pointer-events:none; }
+
+        .fld select, .fld input[type="number"], .fld input[type="text"] {
+            width:100%; padding:12px 14px; background:var(--paper); border:1.5px solid var(--border);
+            border-radius:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; color:var(--ink);
+            outline:none; appearance:none;
+            transition:border-color .2s, box-shadow .2s, background .2s;
+        }
+        .fld select:focus, .fld input:focus { border-color:var(--accent); background:white; box-shadow:0 0 0 3px rgba(124,58,237,.12); }
+
+        .iico { position:relative; }
+        .iico .ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:13px; pointer-events:none; line-height:1; width:16px; text-align:center; }
+        .iico input { padding-left:34px; }
+        .prefix-wrap { position:relative; }
+        .prefix-wrap .prefix { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:14px; font-weight:700; color:var(--ink-muted); pointer-events:none; }
+        .prefix-wrap input { padding-left:38px; }
+
+        .divider { height:1px; background:var(--border); margin:20px 0; }
+
+        .btn-main {
+            width:100%; padding:14px;
+            background:linear-gradient(135deg,#7c3aed,#5b21b6);
+            color:white; border:none;
+            border-radius:14px; font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; font-weight:700; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            transition:transform .15s, box-shadow .2s;
+            box-shadow: 0 6px 20px rgba(124,58,237,.35);
+            letter-spacing:.01em;
+        }
+        .btn-main:hover { box-shadow:0 10px 28px rgba(124,58,237,.5); transform:translateY(-1px); }
+        .btn-main:active { transform:translateY(0); }
+        .btn-main:disabled { background:#c4b5fd; cursor:not-allowed; transform:none; box-shadow:none; }
+        .btn-main:active { transform:translateY(0); }
+        .btn-main:disabled { background:#bbb; cursor:not-allowed; transform:none; box-shadow:none; }
+
+        .btn-ghost {
+            width:100%; padding:12px; background:transparent;
+            color:var(--ink-light); border:1.5px solid var(--border);
+            border-radius:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer;
+            transition:border-color .2s, color .2s, background .2s; margin-top:10px;
+        }
+        .btn-ghost:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+
+        .card-foot { background:rgba(124,58,237,.02); border-top:1px solid rgba(124,58,237,.08); padding:12px 24px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink-muted); }
+        .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+        .dot.green { background:#10b981; animation:pulse 2.5s ease infinite; }
+
+        /* LOADER */
+        .loader { display:flex; align-items:center; justify-content:center; gap:10px; padding:24px 0; color:var(--ink-light); font-size:14px; }
+        .spinner { width:18px; height:18px; border:2.5px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
+
+        /* PERIODO BAR */
+        .period-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; background:white; border:1px solid var(--border); border-radius:14px; padding:12px 16px; }
+        .period-info { flex:1; }
+        .period-lbl { font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-muted); }
+        .period-val { font-size:15px; font-weight:700; color:var(--ink); margin-top:2px; }
+        .period-type { font-size:11px; color:var(--ink-muted); }
+        .period-nav { display:flex; gap:4px; }
+        .period-btn { width:30px; height:30px; border-radius:9px; background:var(--paper); border:1px solid var(--border); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:background .2s; }
+        .period-btn:hover { background:var(--accent-soft); border-color:rgba(124,58,237,.4); color:var(--accent); }
+
+        /* STATS */
+        .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:4px; }
+        .stat-box { background:var(--paper); border-radius:13px; padding:14px 16px; border:1px solid var(--border); }
+        .stat-lbl { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:5px; }
+        .stat-val { font-family:'Syne',sans-serif; font-size:1.4rem; color:var(--ink); }
+        .stat-val.accent  { color:var(--accent);  }
+        .stat-val.success { color:var(--success); }
+        .stat-val.danger  { color:var(--danger);  }
+
+        /* PROGRESS */
+        .prog-list { display:flex; flex-direction:column; gap:22px; }
+        .prog-meta { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:9px; }
+        .prog-name { font-size:14px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:7px; }
+        .prog-emoji { font-size:17px; }
+        .prog-amounts { text-align:right; }
+        .prog-spent  { font-size:15px; font-weight:700; color:var(--ink); }
+        .prog-budget { font-size:11px; color:var(--ink-muted); margin-top:1px; }
+        .prog-track  { height:8px; background:rgba(124,58,237,.08); border-radius:100px; overflow:hidden; }
+        .prog-fill   { height:100%; border-radius:100px; animation:bar-in .8s cubic-bezier(.16,1,.3,1) both; }
+        .fill-safe    { background:linear-gradient(90deg,#10b981,#34d399); }
+        .fill-warn    { background:linear-gradient(90deg,#f59e0b,#fcd34d); }
+        .fill-danger  { background:linear-gradient(90deg,#ef4444,#f87171); }
+        .fill-over    { background:repeating-linear-gradient(90deg,#ef4444 0,#f87171 6px,#ef4444 12px); }
+        .prog-foot { display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+        .pct-txt  { font-size:11px; font-weight:600; color:var(--ink-muted); }
+        .badge { font-size:10px; font-weight:700; letter-spacing:.04em; padding:2px 8px; border-radius:100px; }
+        .badge-safe   { background:#e6f5ef; color:#2d7a58; }
+        .badge-warn   { background:#fef4e4; color:#a06a10; }
+        .badge-danger { background:#fdeaea; color:#922b21; }
+        .badge-over   { background:#fdeaea; color:#922b21; }
+
+        /* HISTORIAL */
+        .mov-list { display:flex; flex-direction:column; gap:10px; }
+        .mov-item { display:flex; align-items:center; gap:12px; padding:13px 15px; background:rgba(124,58,237,.02); border:1px solid rgba(124,58,237,.07); border-radius:14px; transition:box-shadow .2s, transform .15s; }
+        .mov-item:hover { box-shadow:0 4px 16px rgba(124,58,237,.1); transform:translateY(-1px); }
+        .mov-icon { width:38px; height:38px; border-radius:11px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:17px; background:white; border:1px solid var(--border); }
+        .mov-info { flex:1; min-width:0; }
+        .mov-name { font-size:14px; font-weight:600; color:var(--ink); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .mov-meta { font-size:11px; color:var(--ink-muted); }
+        .mov-amt { font-size:15px; font-weight:700; }
+        .mov-amt.neg { color:var(--accent);  }
+        .mov-amt.pos { color:var(--success); }
+
+        /* CONFIG */
+        .cfg-section { margin-bottom:24px; }
+        .cfg-lbl { font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-muted); margin-bottom:12px; padding:0 2px; }
+        .cfg-row { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(124,58,237,.02); border:1px solid rgba(124,58,237,.08); border-radius:14px; margin-bottom:8px; }
+        .cfg-row-info { display:flex; align-items:center; gap:12px; }
+        .cfg-row-ico  { font-size:18px; }
+        .cfg-row-name { font-size:14px; font-weight:600; color:var(--ink); }
+        .cfg-row-desc { font-size:11px; color:var(--ink-muted); margin-top:1px; }
+        .cfg-val { font-size:13px; font-weight:600; color:var(--ink-light); }
+
+        .macro-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .macro-box { background:var(--paper); border:1.5px solid var(--border); border-radius:14px; padding:16px; transition:border-color .2s; }
+        .macro-box:focus-within { border-color:var(--accent); }
+        .macro-emoji { font-size:20px; margin-bottom:8px; }
+        .macro-name  { font-size:12px; font-weight:700; color:var(--ink); margin-bottom:10px; }
+        .macro-box input { width:100%; padding:9px 12px; background:white; border:1.5px solid var(--border); border-radius:9px; font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:600; color:var(--ink); outline:none; text-align:center; transition:border-color .2s; }
+        .macro-box input:focus { border-color:var(--accent); }
+        .macro-hint { font-size:10px; color:var(--ink-muted); text-align:center; margin-top:5px; }
+
+        /* MODAL */
+        .modal-overlay { position:fixed; inset:0; z-index:500; background:rgba(26,26,46,.6); backdrop-filter:blur(4px); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .3s; }
+        .modal-overlay.open { opacity:1; pointer-events:all; }
+        .modal { background:white; border-radius:24px 24px 0 0; padding:28px 24px 40px; width:100%; max-width:540px; transform:translateY(100%); transition:transform .4s cubic-bezier(.16,1,.3,1); }
+        .modal-overlay.open .modal { transform:translateY(0); }
+        .modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 20px; }
+        .modal-title  { font-family:'Syne',sans-serif; font-size:1.4rem; color:var(--ink); margin-bottom:4px; }
+        .modal-sub    { font-size:13px; color:var(--ink-muted); margin-bottom:22px; }
+
+        /* NUEVO PERÍODO MODAL */
+        .periodo-options { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px; }
+        .tipo-btn { padding:12px; background:var(--paper); border:1.5px solid var(--border); border-radius:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; color:var(--ink-light); cursor:pointer; text-align:center; transition:all .2s; }
+        .tipo-btn.sel { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+
+        /* TOAST */
+        .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(100px); background:#1e1b4b; color:white; padding:13px 22px; border-radius:100px; font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; box-shadow:0 8px 30px rgba(30,27,75,.35), 0 0 0 1px rgba(124,58,237,.2); transition:transform .4s cubic-bezier(.16,1,.3,1); z-index:9999; white-space:nowrap; pointer-events:none; }
+        .toast.show    { transform:translateX(-50%) translateY(0); }
+        .toast.success { background:var(--success); }
+        .toast.error   { background:var(--danger);  }
+
+        /* FOOTER */
+        .site-footer { max-width:540px; margin:0 auto; padding:4px 20px 36px; }
+        .footer-inner { border-top:1px solid var(--border); padding-top:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+        .footer-brand { font-family:'Syne',sans-serif; font-size:1rem; color:var(--ink); }
+        .footer-brand span { font-style:italic; color:var(--accent); }
+        .footer-badge { background:var(--accent-soft); border:1px solid rgba(124,58,237,.2); color:var(--accent); font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; padding:4px 10px; border-radius:100px; }
+        .footer-copy { font-size:11px; color:var(--ink-muted); width:100%; }
+
+        /* EMPTY STATE */
+        .empty { text-align:center; padding:32px 16px; color:var(--ink-muted); }
+        .empty-ico { font-size:36px; margin-bottom:10px; }
+        .empty-msg { font-size:14px; font-weight:500; margin-bottom:6px; color:var(--ink-light); }
+        .empty-sub { font-size:12px; }
+
+        /* INLINE BTN */
+        .btn-sm { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; background:var(--accent-soft); color:var(--accent); border:1px solid rgba(232,99,74,.25); border-radius:100px; font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:background .2s; margin-top:12px; }
+        .btn-sm:hover { background:#fbddd7; }
+
+        /* TIPO TOGGLE */
+        .tipo-toggle {
+            padding:10px 14px; border-radius:10px; font-family:'Plus Jakarta Sans',sans-serif;
+            font-size:13px; font-weight:600; cursor:pointer; border:1.5px solid var(--border);
+            background:var(--paper); color:var(--ink-light); transition:all .2s;
+        }
+        .tipo-toggle.active { background:var(--ink); color:white; border-color:var(--ink); }
+        .tipo-toggle:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+
+        /* MACRO FILTER BTN */
+        .macro-filter {
+            padding:6px 14px; border-radius:100px; font-family:'Plus Jakarta Sans',sans-serif;
+            font-size:12px; font-weight:700; cursor:pointer; border:1.5px solid var(--border);
+            background:var(--paper); color:var(--ink-light); transition:all .2s;
+        }
+        .macro-filter.active { border-color:transparent; color:white; }
+
+        @media(max-width:400px) {
+            .auth-card { padding:26px 18px; }
+            .nav-uname { display:none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════ PAGE: LOGIN ════════════ -->
+<div id="pg-login" class="page auth-page active">
+    <div class="auth-box">
+        <div class="auth-logo">
+            <div class="auth-logo-mark">💰</div>
+            <div class="auth-logo-name">Lukka</div>
+            <div class="auth-logo-sub">Tu dinero, bajo control</div>
+        </div>
+        <div class="auth-card">
+            <div class="auth-title">Bienvenido</div>
+            <div class="auth-subtitle">Inicia sesión para ver tu presupuesto</div>
+            <div class="auth-error" id="login-err"></div>
+            <div class="field">
+                <label>Correo electrónico</label>
+                <div class="input-wrap"><span class="ico"></span>
+                    <input type="email" id="l-email" placeholder="tucorreo@gmail.com" autocomplete="email">
+                </div>
+            </div>
+            <div class="field">
+                <label>Contraseña</label>
+                <div class="input-wrap"><span class="ico"></span>
+                    <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+                </div>
+            </div>
+            <div class="auth-divider"></div>
+            <button class="btn-auth" id="btn-login"> Ingresar</button>
+        </div>
+        <div class="auth-switch">¿No tienes cuenta? <a onclick="showPage('pg-register')">Crear una gratis</a></div>
+    </div>
+</div>
+
+<!-- ════════════ PAGE: REGISTER ════════════ -->
+<div id="pg-register" class="page auth-page">
+    <div class="auth-box">
+        <div class="auth-logo">
+            <div class="auth-logo-mark">✨</div>
+            <div class="auth-logo-name">Lukka</div>
+            <div class="auth-logo-sub">Crea tu cuenta</div>
+        </div>
+        <div class="auth-card">
+            <div class="auth-title">Nueva cuenta</div>
+            <div class="auth-subtitle">Empieza a controlar tus finanzas hoy</div>
+            <div class="auth-error" id="reg-err"></div>
+            <div class="field">
+                <label>Nombre completo</label>
+                <div class="input-wrap"><span class="ico">👤</span>
+                    <input type="text" id="r-name" placeholder="Ej: Cristian Hidalgo" autocomplete="name">
+                </div>
+            </div>
+            <div class="field">
+                <label>Correo electrónico</label>
+                <div class="input-wrap"><span class="ico">📧</span>
+                    <input type="email" id="r-email" placeholder="tucorreo@gmail.com" autocomplete="email">
+                </div>
+            </div>
+            <div class="field">
+                <label>Contraseña</label>
+                <div class="input-wrap"><span class="ico">🔒</span>
+                    <input type="password" id="r-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                </div>
+            </div>
+            <div class="auth-divider"></div>
+            <button class="btn-auth" id="btn-register">🎉 Crear mi cuenta</button>
+        </div>
+        <div class="auth-switch">¿Ya tienes cuenta? <a onclick="showPage('pg-login')">Iniciar sesión</a></div>
+    </div>
+</div>
+
+<!-- ════════════ PAGE: APP ════════════ -->
+<div id="pg-app" class="page app-page">
+
+    <nav>
+        <div class="nav-brand">Lukka<span style="color:var(--accent)">.</span></div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="registro">📝 Registrar</button>
+            <button class="nav-tab"        data-tab="reporte" >📊 Reporte</button>
+            <button class="nav-tab"        data-tab="config"  >⚙️ Config</button>
+        </div>
+        <div class="nav-user" onclick="openModal('modal-logout')">
+            <div class="nav-avatar" id="nav-av">?</div>
+            <span class="nav-uname" id="nav-nm">—</span>
+        </div>
+    </nav>
+
+    <div class="main">
+
+        <!-- TAB: REGISTRAR -->
+        <div id="sec-registro" class="section active">
+            <div class="card">
+                <div class="card-header">
+                    <div class="pill">✦ Nuevo movimiento</div>
+                    <div class="card-title" id="reg-titulo">Registrar <em>Gasto</em></div>
+                    <p class="card-sub">Cada sol cuenta para tu meta del ciclo.</p>
+                </div>
+                <div class="card-body">
+                    <div id="reg-loader" class="loader"><div class="spinner"></div> Cargando categorías…</div>
+                    <div id="reg-form" style="display:none">
+
+                        <!-- PERÍODO INFO (solo lectura) -->
+                        <div style="background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:18px">
+                            <span id="reg-periodo-info" style="font-size:13px;font-weight:600;color:var(--success)">📅 Cargando…</span>
+                        </div>
+
+                        <!-- MACRO SELECT -->
+                        <div class="fld">
+                            <label>Macro categoría</label>
+                            <div class="sel-wrap">
+                                <select id="sel-macro" onchange="onMacroChange()"></select>
+                            </div>
+                        </div>
+
+                        <!-- SUBCATEGORÍA -->
+                        <div class="fld">
+                            <label>¿En qué gastaste?</label>
+                            <div class="sel-wrap">
+                                <select id="sel-subcat"></select>
+                            </div>
+                        </div>
+
+                        <!-- MONTO -->
+                        <div class="fld">
+                            <label>Monto (S/)</label>
+                            <div style="position:relative">
+                                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--ink-muted);pointer-events:none">S/</span>
+                                <input type="number" id="inp-monto" step="0.10" min="0.10" placeholder="0.00"
+                                    style="width:100%;padding:12px 14px 12px 38px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s">
+                            </div>
+                        </div>
+
+                        <!-- DESCRIPCIÓN -->
+                        <div class="fld">
+                            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+                            <input type="text" id="inp-desc" placeholder="Ej: Combi UNASAM"
+                                style="width:100%;padding:12px 14px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s">
+                        </div>
+
+                        <div class="divider"></div>
+                        <button class="btn-main" id="btn-guardar">💾 Guardar</button>
+                        <button class="btn-ghost" onclick="switchTab('reporte')">Ver mi reporte →</button>
+                    </div>
+                </div>
+                <div class="card-foot">
+                    <div class="dot green"></div> Conectado a Azure SQL · Lukka DB
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: REPORTE -->
+        <div id="sec-reporte" class="section">
+
+            <div class="period-bar">
+                <div class="period-info">
+                    <div class="period-lbl">Período activo</div>
+                    <div class="period-val" id="period-name">—</div>
+                    <div class="period-type" id="period-dates">—</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="period-nav">
+                        <button class="period-btn" id="btn-prev-p">‹</button>
+                        <button class="period-btn" id="btn-next-p">›</button>
+                    </div>
+                    <button class="btn-sm" style="margin:0" onclick="openModal('modal-periodo')">＋ Nuevo</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><div class="card-title">Consumo <em>vs Presupuesto</em></div></div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-lbl">Presupuesto</div><div class="stat-val" id="st-pres">S/ —</div></div>
+                        <div class="stat-box"><div class="stat-lbl">Gastado</div><div class="stat-val accent" id="st-gast">S/ 0</div></div>
+                        <div class="stat-box"><div class="stat-lbl">Disponible</div><div class="stat-val success" id="st-disp">S/ —</div></div>
+                        <div class="stat-box"><div class="stat-lbl">% Usado</div><div class="stat-val" id="st-pct">0%</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="prog-list" id="prog-list">
+                        <div class="loader"><div class="spinner"></div> Cargando…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><div class="card-title" style="font-size:1.3rem">Últimos <em>movimientos</em></div></div>
+                <div class="card-body">
+                    <div class="mov-list" id="mov-list">
+                        <div class="loader"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB: CONFIG -->
+        <div id="sec-config" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="pill">⚙️ Mi cuenta</div>
+                    <div class="card-title">Configura tu <em>perfil</em></div>
+                    <p class="card-sub" style="margin-bottom:0">Gestiona presupuesto y categorías.</p>
+                </div>
+                <div class="card-body">
+
+                    <div class="cfg-section">
+                        <div class="cfg-lbl">👤 Información personal</div>
+                        <div class="cfg-row">
+                            <div class="cfg-row-info"><div class="cfg-row-ico">📛</div>
+                                <div><div class="cfg-row-name" id="cfg-nombre">—</div><div class="cfg-row-desc">Nombre</div></div>
+                            </div>
+                        </div>
+                        <div class="cfg-row">
+                            <div class="cfg-row-info"><div class="cfg-row-ico">📧</div>
+                                <div><div class="cfg-row-name" id="cfg-email">—</div><div class="cfg-row-desc">Correo</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cfg-section">
+                        <div class="cfg-lbl">📅 Período activo</div>
+                        <div class="fld" style="margin-bottom:10px">
+                            <div class="sel-wrap">
+                                <select id="cfg-sel-periodo" onchange="onCfgPeriodoChange()" style="width:100%;padding:12px 14px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;color:var(--ink);outline:none;appearance:none"></select>
+                            </div>
+                        </div>
+                        <div id="cfg-periodos-list"></div>
+                        <button class="btn-sm" style="margin-top:8px" onclick="openModal('modal-periodo')">＋ Nuevo período</button>
+                    </div>
+
+                    <div class="cfg-section">
+                        <div class="cfg-lbl">⭐ Categorías frecuentes</div>
+                        <div id="top-subcats" style="display:flex;flex-wrap:wrap;gap:8px;min-height:36px">
+                            <span style="font-size:13px;color:var(--ink-muted)">Cargando…</span>
+                        </div>
+
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="cfg-section" style="margin-bottom:0">
+                        <div class="cfg-lbl">💸 Movimientos especiales</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+                            <button onclick="openModal('modal-ingreso')" style="padding:14px 10px;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:var(--success);cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.borderColor='var(--success)';this.style.background='#e6f5ef'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--paper)'">
+                                <div style="font-size:22px;margin-bottom:4px">💵</div>
+                                Registrar Ingreso
+                            </button>
+                            <button onclick="openModal('modal-ajuste')" style="padding:14px 10px;background:var(--paper);border:1.5px solid var(--border);border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#8e44ad;cursor:pointer;transition:all .2s;text-align:center" onmouseover="this.style.borderColor='#8e44ad';this.style.background='#f5edfb'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--paper)'">
+                                <div style="font-size:22px;margin-bottom:4px">⚖️</div>
+                                Ajuste de Saldo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+                    <button class="btn-ghost" onclick="openModal('modal-logout')" style="margin-top:0">↩ Cerrar sesión</button>
+
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /main -->
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">Lukka</div>
+            <div class="footer-badge">V3.0.0 · 2026</div>
+            <div class="footer-copy">Desarrollado por <strong>Cristian Ronaldo Jonceano Hidalgo</strong> · © 2026</div>
+        </div>
+    </footer>
+
+</div><!-- /pg-app -->
+
+<!-- ════════════ MODALS ════════════ -->
+
+<!-- LOGOUT -->
+<div class="modal-overlay" id="modal-logout" onclick="if(event.target===this)closeModal('modal-logout')">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Cerrar sesión</div>
+        <div class="modal-sub">¿Seguro que quieres salir?</div>
+        <button class="btn-main" onclick="doLogout()">↩ Sí, cerrar sesión</button>
+        <button class="btn-ghost" onclick="closeModal('modal-logout')">Cancelar</button>
+    </div>
+</div>
+
+<!-- NUEVO PERÍODO -->
+<div class="modal-overlay" id="modal-periodo" onclick="if(event.target===this)closeModal('modal-periodo')">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Nuevo <em style="color:var(--accent);font-style:italic">período</em></div>
+        <div class="modal-sub">Crea tu presupuesto para este ciclo</div>
+
+        <div class="fld">
+            <label>Tipo de período</label>
+            <div class="periodo-options">
+                <button class="tipo-btn sel" data-tipo="mensual">📅 Mensual</button>
+                <button class="tipo-btn" data-tipo="quincenal">📆 Quincenal</button>
+                <button class="tipo-btn" data-tipo="semanal">🗓 Semanal</button>
+                <button class="tipo-btn" data-tipo="personalizado">✏️ Personalizado</button>
+            </div>
+        </div>
+
+        <div id="fechas-custom" style="display:none">
+            <div class="fld">
+                <label>Fecha inicio</label>
+                <input type="date" id="p-inicio" style="width:100%;padding:12px 14px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;outline:none">
+            </div>
+            <div class="fld">
+                <label>Fecha fin</label>
+                <input type="date" id="p-fin" style="width:100%;padding:12px 14px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;outline:none">
+            </div>
+        </div>
+
+        <div class="fld">
+            <label>Monto total (S/)</label>
+            <div class="iico"><span class="ico">💰</span>
+                <input type="number" id="p-monto" step="10" min="100" placeholder="Ej: 2050">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <button class="btn-main" id="btn-crear-periodo">🗓 Crear período</button>
+        <button class="btn-ghost" onclick="closeModal('modal-periodo')">Cancelar</button>
+    </div>
+</div>
+
+<!-- NUEVA SUBCATEGORÍA -->
+<div class="modal-overlay" id="modal-subcat" onclick="if(event.target===this)closeModal('modal-subcat')">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Nueva <em style="color:var(--accent);font-style:italic">subcategoría</em></div>
+        <div class="modal-sub">Agrega una categoría personalizada a tu lista</div>
+
+        <div class="fld">
+            <label>Categoría padre</label>
+            <div class="sel-wrap"><select id="sel-padre"></select></div>
+        </div>
+        <div class="fld">
+            <label>Nombre</label>
+            <div class="iico"><span class="ico">🏷</span>
+                <input type="text" id="inp-subcat-name" placeholder="Ej: Netflix, Suscripciones...">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <button class="btn-main" id="btn-add-subcat">➕ Agregar</button>
+        <button class="btn-ghost" onclick="closeModal('modal-subcat')">Cancelar</button>
+    </div>
+</div>
+
+<!-- MODAL INGRESO -->
+<div class="modal-overlay" id="modal-ingreso" onclick="if(event.target===this)closeModal('modal-ingreso')">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Registrar <em style="color:var(--success);font-style:italic">Ingreso</em></div>
+        <div class="modal-sub">Sueldo, propina, venta u otro ingreso puntual</div>
+
+        <div class="fld">
+            <label>Monto (S/)</label>
+            <div style="position:relative">
+                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--ink-muted);pointer-events:none">S/</span>
+                <input type="number" id="ing-monto" step="0.10" min="0.10" placeholder="0.00"
+                    style="width:100%;padding:12px 14px 12px 38px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;color:var(--ink);outline:none">
+            </div>
+        </div>
+        <div class="fld">
+            <label>Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+            <input type="text" id="ing-desc" placeholder="Ej: Sueldo marzo, venta laptop..."
+                style="width:100%;padding:12px 14px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;color:var(--ink);outline:none">
+        </div>
+        <div class="divider"></div>
+        <button class="btn-main" id="btn-guardar-ingreso" style="background:var(--success)">💵 Guardar Ingreso</button>
+        <button class="btn-ghost" onclick="closeModal('modal-ingreso')">Cancelar</button>
+    </div>
+</div>
+
+<!-- MODAL AJUSTE DE SALDO -->
+<div class="modal-overlay" id="modal-ajuste" onclick="if(event.target===this)closeModal('modal-ajuste')">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-title">⚖️ Ajuste de <em style="color:#8e44ad;font-style:italic">Saldo</em></div>
+        <div class="modal-sub">¿Cuánto dinero tienes realmente ahora mismo sumando tus bolsillos y cuentas?</div>
+
+        <div style="background:#f5edfb;border:1.5px solid #d7b8f0;border-radius:14px;padding:14px 16px;margin-bottom:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#8e44ad;margin-bottom:6px">💡 Saldo según la app</div>
+            <div id="ajuste-saldo-app" style="font-size:1.4rem;font-family:'Syne',sans-serif;color:#6c3483">S/ —</div>
+            <div style="font-size:11px;color:#8e44ad;margin-top:3px">Presupuesto restante del período activo</div>
+        </div>
+
+        <div class="fld">
+            <label>¿Cuánto tienes realmente? (S/)</label>
+            <div style="position:relative">
+                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:700;color:var(--ink-muted);pointer-events:none">S/</span>
+                <input type="number" id="ajuste-monto-real" step="0.10" min="0" placeholder="Ej: 140.00"
+                    style="width:100%;padding:12px 14px 12px 38px;background:var(--paper);border:1.5px solid var(--border);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;color:var(--ink);outline:none"
+                    oninput="calcularAjuste()">
+            </div>
+        </div>
+
+        <div id="ajuste-preview" style="display:none;border-radius:12px;padding:12px 16px;margin-bottom:4px;font-size:14px;font-weight:600"></div>
+
+        <div class="divider"></div>
+        <button class="btn-main" id="btn-guardar-ajuste" style="background:#8e44ad">⚖️ Aplicar Ajuste</button>
+        <button class="btn-ghost" onclick="closeModal('modal-ajuste')">Cancelar</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════════
+const API = 'https://finanzas-api.azurewebsites.net/api';
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let S = {
+    token:    null,
+    usuario:  null,
+    periodos: [],      // lista de períodos del usuario
+    periodoIdx: 0,     // índice activo en S.periodos
+    categorias: null,  // respuesta completa del endpoint /categorias
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  HTTP CLIENT
+// ═══════════════════════════════════════════════════════════════
+async function api(method, path, body = null) {
+    const opts = {
+        method,
+        headers: { 'Content-Type': 'application/json' }
+    };
+    if (S.token) opts.headers['Authorization'] = `Bearer ${S.token}`;
+    if (body)    opts.body = JSON.stringify(body);
+
+    const res  = await fetch(`${API}${path}`, opts);
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+    return data;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════════
+const fmt = n => 'S/ ' + Number(n).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function toast(msg, type = 'default') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className   = `toast ${type} show`;
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.className = 'toast', 3400);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function setBtnLoading(id, loading, label) {
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.disabled = loading;
+    b.innerHTML = loading
+        ? '<div class="spinner" style="border-color:#fff3;border-top-color:#fff"></div> Procesando…'
+        : label;
+}
+
+function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+function hideError(id) {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PAGES
+// ═══════════════════════════════════════════════════════════════
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    hideError('login-err');
+    hideError('reg-err');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════════════════
+function switchTab(name) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('#pg-app .section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`sec-${name}`).classList.add('active');
+    if (name === 'reporte') renderReporte();
+    if (name === 'config')  renderConfig();
+}
+
+document.querySelectorAll('.nav-tab').forEach(t =>
+    t.addEventListener('click', () => switchTab(t.dataset.tab))
+);
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH — LOGIN
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('btn-login').addEventListener('click', async () => {
+    hideError('login-err');
+    const email = document.getElementById('l-email').value.trim();
+    const pass  = document.getElementById('l-pass').value;
+    if (!email || !pass) { showError('login-err', '⚠️ Completa todos los campos.'); return; }
+
+    setBtnLoading('btn-login', true, '🚀 Ingresar');
+    try {
+        const data = await api('POST', '/auth/login', { email, password: pass });
+        S.token   = data.token;
+        S.usuario = data.usuario;
+        sessionStorage.setItem('fv_token',   S.token);
+        sessionStorage.setItem('fv_usuario', JSON.stringify(S.usuario));
+        await initApp();
+    } catch (e) {
+        showError('login-err', `❌ ${e.message}`);
+    } finally {
+        setBtnLoading('btn-login', false, '🚀 Ingresar');
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH — REGISTRO
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('btn-register').addEventListener('click', async () => {
+    hideError('reg-err');
+    const nombre = document.getElementById('r-name').value.trim();
+    const email  = document.getElementById('r-email').value.trim();
+    const pass   = document.getElementById('r-pass').value;
+
+    if (!nombre || !email || !pass) { showError('reg-err', '⚠️ Completa todos los campos.'); return; }
+    if (pass.length < 6)            { showError('reg-err', '⚠️ Contraseña mínimo 6 caracteres.'); return; }
+
+    setBtnLoading('btn-register', true, '🎉 Crear mi cuenta');
+    try {
+        const data = await api('POST', '/auth/registro', { nombre, email, password: pass });
+        S.token   = data.token;
+        S.usuario = data.usuario;
+        sessionStorage.setItem('fv_token',   S.token);
+        sessionStorage.setItem('fv_usuario', JSON.stringify(S.usuario));
+        toast('🎉 ¡Cuenta creada!', 'success');
+        await initApp();
+    } catch (e) {
+        showError('reg-err', `❌ ${e.message}`);
+    } finally {
+        setBtnLoading('btn-register', false, '🎉 Crear mi cuenta');
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  LOGOUT
+// ═══════════════════════════════════════════════════════════════
+function doLogout() {
+    sessionStorage.clear();
+    S = { token:null, usuario:null, periodos:[], periodoIdx:0, categorias:null };
+    closeModal('modal-logout');
+    showPage('pg-login');
+    toast('Sesión cerrada');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT APP
+// ═══════════════════════════════════════════════════════════════
+async function initApp() {
+    const u = S.usuario;
+    const ini = u.nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('nav-av').textContent = ini;
+    document.getElementById('nav-nm').textContent = u.nombre.split(' ')[0];
+    document.getElementById('cfg-nombre').textContent = u.nombre;
+    document.getElementById('cfg-email').textContent  = u.email;
+
+    showPage('pg-app');
+    switchTab('registro');
+
+    // Cargar datos en paralelo
+    await Promise.all([loadPeriodos(), loadCategorias()]);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PERÍODOS
+// ═══════════════════════════════════════════════════════════════
+async function loadPeriodos() {
+    try {
+        S.periodos   = await api('GET', '/periodos');
+        S.periodoIdx = 0;
+        renderPeriodBar();
+        populatePeriodoSelect();
+    } catch (e) {
+        // Sin períodos aún — se crea desde el modal
+        S.periodos = [];
+        populatePeriodoSelect();
+    }
+}
+
+function renderPeriodBar() {
+    const p = S.periodos[S.periodoIdx];
+    if (!p) {
+        document.getElementById('period-name').textContent  = 'Sin período';
+        document.getElementById('period-dates').textContent = 'Crea uno nuevo →';
+        return;
+    }
+    const fmt_date = d => new Date(d + 'T00:00:00').toLocaleDateString('es-PE', { day:'2-digit', month:'short', year:'numeric' });
+    document.getElementById('period-name').textContent  = p.nombre;
+    document.getElementById('period-dates').textContent = `${fmt_date(p.fecha_inicio)} – ${fmt_date(p.fecha_fin)}`;
+}
+
+function populatePeriodoSelect() {
+    // Buscar el período que contiene HOY
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+
+    let idxActual = -1;
+    S.periodos.forEach((p, i) => {
+        const ini = new Date(p.fecha_inicio + 'T00:00:00');
+        const fin = new Date(p.fecha_fin    + 'T00:00:00');
+        if (hoy >= ini && hoy <= fin) idxActual = i;
+    });
+
+    // Si no hay período que incluya hoy, usar el más reciente (índice 0)
+    if (idxActual === -1 && S.periodos.length > 0) idxActual = 0;
+
+    if (idxActual !== -1) S.periodoIdx = idxActual;
+
+    const p    = S.periodos[S.periodoIdx];
+    const info = document.getElementById('reg-periodo-info');
+    if (info) {
+        info.textContent = p ? '📅 ' + p.nombre : '⚠️ Sin período — ve a Config';
+        info.style.color = p ? 'var(--success)' : 'var(--accent)';
+    }
+
+    // Sincronizar barra de reporte
+    renderPeriodBar();
+}
+
+document.getElementById('btn-prev-p').addEventListener('click', () => {
+    if (S.periodoIdx < S.periodos.length - 1) {
+        S.periodoIdx++;
+        renderPeriodBar();
+        renderReporte();
+    }
+});
+
+document.getElementById('btn-next-p').addEventListener('click', () => {
+    if (S.periodoIdx > 0) {
+        S.periodoIdx--;
+        renderPeriodBar();
+        renderReporte();
+    }
+});
+
+// ── TIPO PERÍODO modal ──
+document.querySelectorAll('.tipo-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        const custom = btn.dataset.tipo !== 'mensual';
+        document.getElementById('fechas-custom').style.display = custom ? 'block' : 'none';
+    });
+});
+
+// ── CREAR PERÍODO ──
+document.getElementById('btn-crear-periodo').addEventListener('click', async () => {
+    const tipo   = document.querySelector('.tipo-btn.sel')?.dataset.tipo || 'mensual';
+    const monto  = parseFloat(document.getElementById('p-monto').value);
+    if (!monto || monto < 100) { toast('⚠️ Ingresa un monto válido (mín. S/100)', 'error'); return; }
+
+    const body = { tipo, monto_total: monto };
+    if (tipo !== 'mensual') {
+        body.fecha_inicio = document.getElementById('p-inicio').value;
+        body.fecha_fin    = document.getElementById('p-fin').value;
+        if (!body.fecha_inicio || !body.fecha_fin) { toast('⚠️ Ingresa las fechas', 'error'); return; }
+    }
+
+    setBtnLoading('btn-crear-periodo', true, '🗓 Crear período');
+    try {
+        const nuevo = await api('POST', '/periodos', body);
+        await loadPeriodos();
+
+        // Seleccionar el nuevo período
+        const idx = S.periodos.findIndex(p => p.id_periodo === nuevo.id_periodo);
+        if (idx >= 0) S.periodoIdx = idx;
+        renderPeriodBar();
+        populatePeriodoSelect();
+
+        closeModal('modal-periodo');
+        toast(`✅ Período "${nuevo.nombre}" creado. Distribución: ${nuevo.distribucion.map(d => `${d.macro} S/${d.monto_asignado}`).join(' · ')}`, 'success');
+        document.getElementById('p-monto').value = '';
+    } catch (e) {
+        toast(`❌ ${e.message}`, 'error');
+    } finally {
+        setBtnLoading('btn-crear-periodo', false, '🗓 Crear período');
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  CATEGORÍAS
+// ═══════════════════════════════════════════════════════════════
+async function loadCategorias() {
+    document.getElementById('reg-loader').style.display = 'flex';
+    document.getElementById('reg-form').style.display   = 'none';
+    try {
+        S.categorias = await api('GET', '/categorias');
+        populateSubcatSelect(S.categorias.subcategorias_planas);
+        populatePadreSelect(S.categorias.arbol);
+    } catch (e) {
+        document.getElementById('reg-loader').innerHTML = `❌ Error al cargar categorías: ${e.message}`;
+        return;
+    }
+    document.getElementById('reg-loader').style.display = 'none';
+    document.getElementById('reg-form').style.display   = 'block';
+}
+
+// Guarda todas las subcats para filtrar
+let _allSubcats = [];
+let _activeMacro = null;
+let _activeTipo = 1;
+
+function populateSubcatSelect(lista) {
+    _allSubcats = lista;
+    // Llenar select de macros
+    const macros = [...new Set(lista.map(s => s.macro))];
+    const selMacro = document.getElementById('sel-macro');
+    selMacro.innerHTML = '';
+    const MACRO_EMOJI = { 'Necesidades':'🏠','Ahorro':'💰','Educación':'📚','Diversión':'🎉' };
+    macros.forEach((m, i) => {
+        const o = document.createElement('option');
+        o.value = m;
+        o.textContent = (MACRO_EMOJI[m] || '▸') + ' ' + m;
+        selMacro.appendChild(o);
+        if (i === 0) _activeMacro = m;
+    });
+    filterSubcats();
+}
+
+function onMacroChange() {
+    _activeMacro = document.getElementById('sel-macro').value;
+    filterSubcats();
+}
+
+function filterSubcats() {
+    const sel = document.getElementById('sel-subcat');
+    sel.innerHTML = '';
+    const filtered = _allSubcats.filter(s => !_activeMacro || s.macro === _activeMacro);
+    if (!filtered.length) {
+        sel.innerHTML = '<option>— Sin subcategorías —</option>';
+        return;
+    }
+    filtered.forEach(sc => {
+        const o = document.createElement('option');
+        o.value = sc.id;
+        o.textContent = sc.nombre;
+        sel.appendChild(o);
+    });
+}
+
+function setTipo(tipo) {
+    _activeTipo = tipo;
+}
+
+function renderTopSubcats() {
+    const el = document.getElementById('top-subcats');
+    if (!el) return;
+
+    if (!S.categorias || !S.categorias.subcategorias_planas.length) {
+        el.innerHTML = '<span style="font-size:13px;color:var(--ink-muted)">Sin categorías cargadas</span>';
+        return;
+    }
+
+    const MACRO_COLORS = {
+        'Necesidades': '#e8634a',
+        'Ahorro':      '#3d9970',
+        'Educación':   '#3498db',
+        'Diversión':   '#9b59b6'
+    };
+    const MACRO_EMOJI = { 'Necesidades':'🏠','Ahorro':'💰','Educación':'📚','Diversión':'🎉' };
+
+    // Mostrar top 5 — primeras de cada macro para tener variedad
+    const top = [];
+    const macros = [...new Set(S.categorias.subcategorias_planas.map(s => s.macro))];
+    macros.forEach(m => {
+        const de_macro = S.categorias.subcategorias_planas.filter(s => s.macro === m).slice(0, 2);
+        top.push(...de_macro);
+    });
+    const mostrar = top.slice(0, 6);
+
+    el.innerHTML = '';
+    mostrar.forEach(sc => {
+        const col   = MACRO_COLORS[sc.macro] || '#888';
+        const emoji = MACRO_EMOJI[sc.macro]  || '▸';
+        const chip  = document.createElement('button');
+        chip.style.cssText = `
+            display:inline-flex;align-items:center;gap:5px;
+            background:${col}12;color:${col};
+            border:1.5px solid ${col}40;border-radius:100px;
+            font-size:12px;font-weight:700;padding:5px 12px;
+            cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
+            transition:background .2s;
+        `;
+        chip.innerHTML = `<span>${emoji}</span> ${sc.nombre}`;
+        chip.title = sc.macro;
+        // Al hacer clic → ir a Registrar con esa subcategoría seleccionada
+        chip.addEventListener('click', () => {
+            switchTab('registro');
+            setTimeout(() => {
+                const selMacro = document.getElementById('sel-macro');
+                if (selMacro) {
+                    selMacro.value = sc.macro;
+                    _activeMacro = sc.macro;
+                    filterSubcats();
+                    // Seleccionar la subcategoría específica
+                    const selSub = document.getElementById('sel-subcat');
+                    if (selSub) {
+                        for (let o of selSub.options) {
+                            if (parseInt(o.value) === sc.id) { selSub.value = o.value; break; }
+                        }
+                    }
+                }
+            }, 100);
+        });
+        el.appendChild(chip);
+    });
+
+    // Chip para ver todas
+    const ver = document.createElement('button');
+    ver.style.cssText = `
+        display:inline-flex;align-items:center;gap:5px;
+        background:var(--paper);color:var(--ink-muted);
+        border:1.5px dashed var(--border);border-radius:100px;
+        font-size:12px;font-weight:600;padding:5px 12px;
+        cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
+    `;
+    ver.textContent = '+ ver en Registrar';
+    ver.addEventListener('click', () => switchTab('registro'));
+    el.appendChild(ver);
+}
+
+function populatePadreSelect(arbol) {
+    const sel = document.getElementById('sel-padre');
+    sel.innerHTML = '';
+    arbol.forEach(macro => {
+        const grp = document.createElement('optgroup');
+        grp.label = macro.nombre;
+        macro.padres.forEach(p => {
+            const o = document.createElement('option');
+            o.value       = p.id_catepadre;
+            o.textContent = p.nombre;
+            grp.appendChild(o);
+        });
+        sel.appendChild(grp);
+    });
+}
+
+
+
+// ── AGREGAR SUBCATEGORÍA ──
+document.getElementById('btn-add-subcat').addEventListener('click', async () => {
+    const nombre       = document.getElementById('inp-subcat-name').value.trim();
+    const id_catepadre = parseInt(document.getElementById('sel-padre').value);
+    if (!nombre)       { toast('⚠️ Ingresa un nombre', 'error'); return; }
+
+    setBtnLoading('btn-add-subcat', true, '➕ Agregar');
+    try {
+        await api('POST', '/categorias/subcat', { nombre, id_catepadre });
+        await loadCategorias();
+        closeModal('modal-subcat');
+        document.getElementById('inp-subcat-name').value = '';
+        toast(`✅ "${nombre}" agregada`, 'success');
+    } catch (e) {
+        toast(`❌ ${e.message}`, 'error');
+    } finally {
+        setBtnLoading('btn-add-subcat', false, '➕ Agregar');
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  REGISTRAR MOVIMIENTO
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('btn-guardar').addEventListener('click', async () => {
+    const id_periodo      = S.periodos[S.periodoIdx]?.id_periodo;
+    const id_subcategoria = parseInt(document.getElementById('sel-subcat').value);
+    const monto           = parseFloat(document.getElementById('inp-monto').value);
+    const descripcion     = document.getElementById('inp-desc').value.trim() || null;
+    const id_tipo         = _activeTipo || 1;
+
+    if (!id_periodo || isNaN(id_periodo)) { toast('⚠️ Crea un período desde Configuración primero', 'error'); switchTab('config'); return; }
+    if (!monto || monto <= 0)             { toast('⚠️ Ingresa un monto válido (mayor a 0)', 'error'); return; }
+
+    setBtnLoading('btn-guardar', true, '💾 Guardar');
+    try {
+        await api('POST', '/movimientos', {
+            id_subcategoria,
+            id_periodo,
+            id_tipo,
+            monto,
+            descripcion
+        });
+        toast('✅ ¡Movimiento registrado!', 'success');
+        document.getElementById('inp-monto').value = '';
+        document.getElementById('inp-desc').value  = '';
+        switchTab('reporte');
+    } catch (e) {
+        toast(`❌ ${e.message}`, 'error');
+    } finally {
+        setBtnLoading('btn-guardar', false, ' Guardar');
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  REPORTE
+// ═══════════════════════════════════════════════════════════════
+const MACRO_EMOJI = { Necesidades:'🏠', Ahorro:'💰', Educación:'📚', Diversión:'🎉' };
+
+async function renderReporte() {
+    const periodo = S.periodos[S.periodoIdx];
+    if (!periodo) {
+        document.getElementById('prog-list').innerHTML = `
+            <div class="empty">
+                <div class="empty-ico">📊</div>
+                <div class="empty-msg">Sin período activo</div>
+                <div class="empty-sub">Crea un período para ver tu reporte</div>
+                <button class="btn-sm" onclick="openModal('modal-periodo')">＋ Crear período</button>
+            </div>`;
+        document.getElementById('mov-list').innerHTML = '';
+        return;
+    }
+
+    document.getElementById('prog-list').innerHTML = '<div class="loader"><div class="spinner"></div> Actualizando…</div>';
+    document.getElementById('mov-list').innerHTML  = '<div class="loader"><div class="spinner"></div></div>';
+
+    try {
+        const [resumen, movData] = await Promise.all([
+            api('GET', `/resumen?id_periodo=${periodo.id_periodo}`),
+            api('GET', `/movimientos?id_periodo=${periodo.id_periodo}&limit=15`)
+        ]);
+
+        // Stats
+        document.getElementById('st-pres').textContent = fmt(resumen.total_presupuesto);
+        document.getElementById('st-gast').textContent = fmt(resumen.total_gastado);
+        document.getElementById('st-disp').textContent = fmt(resumen.total_disponible);
+        document.getElementById('st-pct').textContent  = resumen.pct_global + '%';
+
+        const dispEl = document.getElementById('st-disp');
+        dispEl.className = resumen.total_disponible < 0 ? 'stat-val danger' :
+                           resumen.total_disponible < resumen.total_presupuesto * 0.1 ? 'stat-val accent' : 'stat-val success';
+
+        // Barras de progreso
+        const list = document.getElementById('prog-list');
+        list.innerHTML = '';
+
+        if (!resumen.macros.length) {
+            list.innerHTML = '<div class="empty"><div class="empty-ico">😊</div><div class="empty-msg">¡Aún no hay gastos!</div><div class="empty-sub">Registra tu primer movimiento</div></div>';
+        } else {
+            resumen.macros.forEach((m, i) => {
+                const pct    = m.pct_consumido;
+                const cls    = m.estado === 'EXCEDIDO' ? 'over' : m.estado === 'CRITICO' ? 'danger' : m.estado === 'ADVERTENCIA' ? 'warn' : 'safe';
+                const lbl    = m.estado === 'EXCEDIDO' ? '🔴 Excedido' : m.estado === 'CRITICO' ? '🟠 Crítico' : m.estado === 'ADVERTENCIA' ? '🟡 Moderado' : '🟢 OK';
+                const fillW  = Math.min(pct, 100);
+                const emoji  = MACRO_EMOJI[m.macro] || '💸';
+
+                const item = document.createElement('div');
+                item.innerHTML = `
+                    <div class="prog-meta">
+                        <div class="prog-name"><span class="prog-emoji">${emoji}</span>${m.macro}</div>
+                        <div class="prog-amounts">
+                            <div class="prog-spent">${fmt(m.gastado)}</div>
+                            <div class="prog-budget">de ${fmt(m.presupuestado)}</div>
+                        </div>
+                    </div>
+                    <div class="prog-track">
+                        <div class="prog-fill fill-${cls}" style="width:${fillW}%;animation-duration:${.6+i*.15}s"></div>
+                    </div>
+                    <div class="prog-foot">
+                        <span class="pct-txt">${pct}% usado · disponible ${fmt(m.disponible)}</span>
+                        <span class="badge badge-${cls}">${lbl}</span>
+                    </div>`;
+                list.appendChild(item);
+            });
+        }
+
+        // Historial
+        const movEl = document.getElementById('mov-list');
+        movEl.innerHTML = '';
+
+        if (!movData.movimientos.length) {
+            movEl.innerHTML = '<div class="empty"><div class="empty-ico">🧾</div><div class="empty-msg">Sin movimientos aún</div></div>';
+        } else {
+            movData.movimientos.forEach(mv => {
+                const emoji = MACRO_EMOJI[mv.macro] || '💸';
+                const fecha = new Date(mv.fecha + 'T00:00:00').toLocaleDateString('es-PE', { day:'2-digit', month:'short' });
+                const item  = document.createElement('div');
+                item.className = 'mov-item';
+                item.innerHTML = `
+                    <div class="mov-icon" style="background:${mv.color_hex || 'var(--paper)'}18">${emoji}</div>
+                    <div class="mov-info">
+                        <div class="mov-name">${mv.subcategoria || mv.tipo}</div>
+                        <div class="mov-meta">${fecha}${mv.descripcion ? ' · ' + mv.descripcion : ''}${mv.macro ? ' · ' + mv.macro : ''}</div>
+                    </div>
+                    <div class="mov-amt ${mv.monto_signed < 0 ? 'neg' : 'pos'}">${mv.monto_signed < 0 ? '-' : '+'}${fmt(Math.abs(mv.monto_signed))}</div>`;
+                movEl.appendChild(item);
+            });
+
+            if (movData.has_more) {
+                const more = document.createElement('p');
+                more.style.cssText = 'text-align:center;padding:10px 0;font-size:12px;color:var(--ink-muted)';
+                more.textContent = `+ ${movData.total - movData.movimientos.length} movimientos más`;
+                movEl.appendChild(more);
+            }
+        }
+
+    } catch (e) {
+        document.getElementById('prog-list').innerHTML = `<div class="empty"><div class="empty-ico">⚠️</div><div class="empty-msg">Error al cargar</div><div class="empty-sub">${e.message}</div></div>`;
+        document.getElementById('mov-list').innerHTML = '';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════════
+function renderConfig() {
+    renderCfgPeriodos();
+    renderTopSubcats();
+}
+
+function renderCfgPeriodos() {
+    // Llenar select de períodos
+    const sel = document.getElementById('cfg-sel-periodo');
+    const info = document.getElementById('cfg-periodos-list');
+    if (!sel) return;
+    sel.innerHTML = '';
+
+    if (!S.periodos.length) {
+        sel.innerHTML = '<option>— Sin períodos aún —</option>';
+        if (info) info.innerHTML = '';
+        return;
+    }
+
+    S.periodos.forEach((p, i) => {
+        const o = document.createElement('option');
+        o.value = i;
+        o.textContent = p.nombre + (i === S.periodoIdx ? ' ✓ activo' : '');
+        sel.appendChild(o);
+    });
+    sel.value = S.periodoIdx;
+
+    // Mostrar info del período seleccionado
+    showCfgPeriodoInfo(S.periodoIdx);
+}
+
+function onCfgPeriodoChange() {
+    const idx = parseInt(document.getElementById('cfg-sel-periodo').value);
+    S.periodoIdx = idx;
+    renderPeriodBar();
+    populatePeriodoSelect();
+    showCfgPeriodoInfo(idx);
+}
+
+function showCfgPeriodoInfo(idx) {
+    const info = document.getElementById('cfg-periodos-list');
+    if (!info) return;
+    const p = S.periodos[idx];
+    if (!p) { info.innerHTML = ''; return; }
+    const fi = new Date(p.fecha_inicio + 'T00:00:00').toLocaleDateString('es-PE', {day:'2-digit',month:'long',year:'numeric'});
+    const ff = new Date(p.fecha_fin    + 'T00:00:00').toLocaleDateString('es-PE', {day:'2-digit',month:'long',year:'numeric'});
+    info.innerHTML = `
+        <div class="cfg-row" style="margin-top:8px">
+            <div class="cfg-row-info">
+                <div class="cfg-row-ico">💰</div>
+                <div>
+                    <div class="cfg-row-name">S/ ${Number(p.monto_total).toLocaleString('es-PE',{minimumFractionDigits:2})}</div>
+                    <div class="cfg-row-desc">Presupuesto total</div>
+                </div>
+            </div>
+        </div>
+        <div class="cfg-row">
+            <div class="cfg-row-info">
+                <div class="cfg-row-ico">📆</div>
+                <div>
+                    <div class="cfg-row-name">${fi} → ${ff}</div>
+                    <div class="cfg-row-desc">${p.tipo_periodo}</div>
+                </div>
+            </div>
+        </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════════════════
+// ── GUARDAR INGRESO ──
+document.getElementById('btn-guardar-ingreso').addEventListener('click', async () => {
+    const monto       = parseFloat(document.getElementById('ing-monto').value);
+    const descripcion = document.getElementById('ing-desc').value.trim() || null;
+    const id_periodo  = S.periodos[S.periodoIdx]?.id_periodo;
+
+    if (!id_periodo) { toast('⚠️ Crea un período primero en Config', 'error'); return; }
+    if (!monto || monto <= 0) { toast('⚠️ Ingresa un monto válido', 'error'); return; }
+
+    setBtnLoading('btn-guardar-ingreso', true, '💵 Guardar Ingreso');
+    try {
+        await api('POST', '/movimientos', {
+            id_subcategoria: null,
+            id_periodo,
+            id_tipo: 2,
+            monto,
+            descripcion
+        });
+        toast('✅ Ingreso registrado', 'success');
+        document.getElementById('ing-monto').value = '';
+        document.getElementById('ing-desc').value  = '';
+        closeModal('modal-ingreso');
+    } catch(e) {
+        toast('❌ ' + e.message, 'error');
+    } finally {
+        setBtnLoading('btn-guardar-ingreso', false, '💵 Guardar Ingreso');
+    }
+});
+
+// ── AJUSTE DE SALDO ──
+// Abre el modal y calcula el saldo actual según la app
+
+function actualizarSaldoApp() {
+    const periodo = S.periodos[S.periodoIdx];
+    if (!periodo) {
+        document.getElementById('ajuste-saldo-app').textContent = 'Sin período activo';
+        return;
+    }
+    // Llamar al resumen para obtener el disponible real
+    api('GET', `/resumen?id_periodo=${periodo.id_periodo}`)
+        .then(r => {
+            const disp = r.total_disponible;
+            document.getElementById('ajuste-saldo-app').textContent = fmt(disp);
+            document.getElementById('ajuste-saldo-app').dataset.valor = disp;
+        })
+        .catch(() => {
+            document.getElementById('ajuste-saldo-app').textContent = 'Error al obtener';
+        });
+    document.getElementById('ajuste-monto-real').value = '';
+    document.getElementById('ajuste-preview').style.display = 'none';
+}
+
+function calcularAjuste() {
+    const real     = parseFloat(document.getElementById('ajuste-monto-real').value);
+    const appVal   = parseFloat(document.getElementById('ajuste-saldo-app').dataset.valor || '0');
+    const preview  = document.getElementById('ajuste-preview');
+
+    if (isNaN(real)) { preview.style.display = 'none'; return; }
+
+    const diff = real - appVal;
+    preview.style.display = 'block';
+
+    if (Math.abs(diff) < 0.01) {
+        preview.style.background = '#e6f5ef';
+        preview.style.color      = '#2d7a58';
+        preview.style.border     = '1.5px solid #a8d5c2';
+        preview.textContent      = '✅ ¡Todo cuadra perfectamente! No se necesita ajuste.';
+    } else if (diff < 0) {
+        preview.style.background = '#fdeaea';
+        preview.style.color      = '#922b21';
+        preview.style.border     = '1.5px solid #f5b7b1';
+        preview.textContent      = `⬇️ Falta S/ ${fmt(Math.abs(diff))} — se registrará un gasto en Imprevistos`;
+    } else {
+        preview.style.background = '#e6f5ef';
+        preview.style.color      = '#2d7a58';
+        preview.style.border     = '1.5px solid #a8d5c2';
+        preview.textContent      = `⬆️ Sobran S/ ${fmt(diff)} — se registrará un ingreso por sobrante`;
+    }
+}
+
+document.getElementById('btn-guardar-ajuste').addEventListener('click', async () => {
+    const real    = parseFloat(document.getElementById('ajuste-monto-real').value);
+    const appVal  = parseFloat(document.getElementById('ajuste-saldo-app').dataset.valor || '0');
+    const id_periodo = S.periodos[S.periodoIdx]?.id_periodo;
+
+    if (!id_periodo)   { toast('⚠️ Sin período activo', 'error'); return; }
+    if (isNaN(real))   { toast('⚠️ Ingresa un monto real', 'error'); return; }
+
+    const diff = real - appVal;
+
+    if (Math.abs(diff) < 0.01) {
+        toast('✅ ¡Todo cuadra! No hay nada que ajustar.', 'success');
+        closeModal('modal-ajuste');
+        return;
+    }
+
+    setBtnLoading('btn-guardar-ajuste', true, '⚖️ Aplicar Ajuste');
+    try {
+        if (diff < 0) {
+            // Falta dinero → gasto en Imprevistos
+            // Buscar id de subcategoría "Imprevistos"
+            const imprevisto = S.categorias?.subcategorias_planas.find(s => s.nombre === 'Imprevistos');
+            await api('POST', '/movimientos', {
+                id_subcategoria: imprevisto?.id || null,
+                id_periodo,
+                id_tipo:    1,
+                monto:      Math.abs(diff),
+                descripcion: 'Ajuste automático por faltante'
+            });
+            toast(`⬇️ Ajuste aplicado: gasto de ${fmt(Math.abs(diff))} en Imprevistos`, 'success');
+        } else {
+            // Sobra dinero → ingreso
+            await api('POST', '/movimientos', {
+                id_subcategoria: null,
+                id_periodo,
+                id_tipo:    2,
+                monto:      diff,
+                descripcion: 'Ajuste automático por sobrante'
+            });
+            toast(`⬆️ Ajuste aplicado: ingreso de ${fmt(diff)} registrado`, 'success');
+        }
+        closeModal('modal-ajuste');
+    } catch(e) {
+        toast('❌ ' + e.message, 'error');
+    } finally {
+        setBtnLoading('btn-guardar-ajuste', false, '⚖️ Aplicar Ajuste');
+    }
+});
+
+// openModal override para ajuste
+const _origOpen = window.openModal;
+window.openModal = function(id) {
+    _origOpen(id);
+    if (id === 'modal-ajuste') setTimeout(actualizarSaldoApp, 350);
+};
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    }
+    if (e.key === 'Enter') {
+        if (document.getElementById('pg-login').classList.contains('active'))    document.getElementById('btn-login').click();
+        if (document.getElementById('pg-register').classList.contains('active')) document.getElementById('btn-register').click();
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  RESTAURAR SESIÓN
+// ═══════════════════════════════════════════════════════════════
+(async function boot() {
+    const token   = sessionStorage.getItem('fv_token');
+    const usuario = sessionStorage.getItem('fv_usuario');
+    if (token && usuario) {
+        S.token   = token;
+        S.usuario = JSON.parse(usuario);
+        await initApp();
+    } else {
+        showPage('pg-login');
+    }
+})();
+</script>
+</body>
+</html>
