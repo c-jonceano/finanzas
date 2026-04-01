@@ -343,12 +343,11 @@
         /* ── NAV ── */
         nav {
             position: sticky; top: 0; z-index: 100;
-            background: rgba(255,255,255,.88);
-            backdrop-filter: blur(24px) saturate(160%);
-            border-bottom: 1px solid rgba(124,58,237,.09);
+            background: white;
+            border-bottom: 1.5px solid #ede8f9;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 18px; height: 62px; gap: 12px;
-            box-shadow: 0 2px 20px rgba(124,58,237,.08);
+            padding: 0 18px; height: 66px; gap: 12px;
+            box-shadow: 0 4px 24px rgba(124,58,237,.1);
         }
         .nav-brand {
             font-family: 'DM Serif Display', serif;
@@ -358,31 +357,39 @@
             white-space: nowrap; letter-spacing: -.02em;
         }
         .nav-tabs {
-            display: flex; gap: 2px;
-            background: rgba(124,58,237,.08);
-            padding: 4px; border-radius: 16px;
-            flex: 1; max-width: 320px;
+            display: flex; gap: 4px;
+            background: #f0ebfc;
+            padding: 5px; border-radius: 18px;
+            flex: 1; max-width: 330px;
+            border: 1.5px solid #e2d9f8;
         }
         .nav-tab {
-            flex: 1; padding: 8px 6px; border-radius: 12px;
+            flex: 1; padding: 9px 8px; border-radius: 13px;
             font-size: 12px; font-weight: 700;
-            color: #9580c1; cursor: pointer; border: none; background: transparent;
+            color: #a090c8; cursor: pointer; border: none; background: transparent;
             font-family: 'DM Sans', sans-serif;
             transition: all .22s; white-space: nowrap;
             display: flex; align-items: center; justify-content: center; gap: 5px;
+            letter-spacing: .01em;
         }
-        .nav-tab.active { background: white; color: var(--accent); box-shadow: 0 2px 12px rgba(124,58,237,.18); }
+        .nav-tab.active {
+            background: linear-gradient(135deg,#7c3aed,#5b21b6);
+            color: white;
+            box-shadow: 0 4px 14px rgba(124,58,237,.4);
+        }
+        .nav-tab.active svg { opacity: 1; }
+        .nav-tab:not(.active):hover { background: rgba(124,58,237,.08); color: var(--accent); }
         .nav-user {
             display: flex; align-items: center; cursor: pointer;
             border-radius: 50%; transition: transform .2s;
         }
         .nav-user:hover { transform: scale(1.06); }
         .nav-avatar {
-            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
             background: linear-gradient(135deg,#a78bfa,#7c3aed,#5b21b6);
             display: flex; align-items: center; justify-content: center;
-            font-size: 13px; font-weight: 800; color: white;
-            box-shadow: 0 3px 12px rgba(124,58,237,.5);
+            font-size: 14px; font-weight: 800; color: white;
+            box-shadow: 0 4px 14px rgba(124,58,237,.45);
             font-family: 'DM Serif Display', serif; font-style: italic;
             border: 2.5px solid white;
         }
@@ -475,49 +482,44 @@
         .period-bar {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 14px;
-            background: linear-gradient(135deg,#7c3aed,#5b21b6);
-            border-radius: 20px; padding: 16px 18px;
-            box-shadow: 0 8px 28px rgba(124,58,237,.32);
-            position: relative; overflow: hidden;
+            background: white;
+            border-radius: 18px; padding: 14px 18px;
+            border: 1.5px solid #e2d9f8;
+            box-shadow: 0 2px 12px rgba(124,58,237,.07);
         }
-        .period-bar::before {
-            content: ''; position: absolute; top: -30px; right: -30px;
-            width: 130px; height: 130px; border-radius: 50%;
-            background: rgba(255,255,255,.07); pointer-events: none;
-        }
+        .period-bar::before { display: none; }
         .period-info { flex: 1; }
-        .period-lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.55); }
-        .period-val { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-style: italic; color: white; margin-top: 2px; }
-        .period-type { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 2px; }
+        .period-lbl { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #9580c1; }
+        .period-val { font-family: 'DM Serif Display', serif; font-size: 1.25rem; font-style: italic; color: var(--ink); margin-top: 2px; }
+        .period-type { font-size: 11px; color: #9580c1; margin-top: 2px; }
         .period-nav { display: flex; gap: 6px; }
         .period-btn {
             width: 32px; height: 32px; border-radius: 10px;
-            background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2);
+            background: #f0ebfc; border: 1.5px solid #e2d9f8;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: white; transition: background .2s;
+            color: var(--accent); transition: all .2s;
         }
-        .period-btn:hover { background: rgba(255,255,255,.28); }
-        .period-btn svg { stroke: white; }
+        .period-btn:hover { background: rgba(124,58,237,.15); border-color: var(--accent); }
+        .period-btn svg { stroke: var(--accent); }
 
         /* ── STATS ── */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-box { border-radius: 16px; padding: 16px; position: relative; overflow: hidden; }
-        .stat-box-pres { background: linear-gradient(135deg,#f3effe,#ebe3fc); border: 1.5px solid #ddd0f8; }
-        .stat-box-gast { background: linear-gradient(135deg,#fff5f0,#ffe8e0); border: 1.5px solid #ffd0bb; }
-        .stat-box-disp { background: linear-gradient(135deg,#f0fdf8,#d4f5e9); border: 1.5px solid #a8e6cf; }
-        .stat-box-pct  { background: linear-gradient(135deg,#fffbeb,#fef3c7); border: 1.5px solid #fde68a; }
-        .stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 7px; }
-        .stat-lbl-pres { color: #7c3aed; }
-        .stat-lbl-gast { color: #c2410c; }
-        .stat-lbl-disp { color: #065f46; }
-        .stat-lbl-pct  { color: #92400e; }
-        .stat-val { font-family: 'DM Serif Display', serif; font-size: 1.35rem; }
+        .stat-box { border-radius: 16px; padding: 16px; position: relative; overflow: hidden; background: #f7f4fe; border: 1.5px solid #ede8f9; }
+        .stat-box-pres { background: #f7f4fe; border-color: #ede8f9; }
+        .stat-box-gast { background: #f7f4fe; border-color: #ede8f9; }
+        .stat-box-disp { background: #f7f4fe; border-color: #ede8f9; }
+        .stat-box-pct  { background: #f7f4fe; border-color: #ede8f9; }
+        .stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 7px; color: #9580c1; }
+        .stat-lbl-pres { color: #9580c1; }
+        .stat-lbl-gast { color: #9580c1; }
+        .stat-lbl-disp { color: #9580c1; }
+        .stat-lbl-pct  { color: #9580c1; }
+        .stat-val { font-family: 'DM Serif Display', serif; font-size: 1.35rem; color: var(--ink); }
         .stat-val-pres { color: var(--ink); }
-        .stat-val-gast { color: #e8634a; }
+        .stat-val-gast { color: var(--accent); }
         .stat-val-disp { color: #10b981; }
-        .stat-val-pct  { color: #d97706; }
+        .stat-val-pct  { color: var(--ink); }
         .stat-val.danger { color: var(--danger); }
-        /* mantener compat con clases antiguas */
         .stat-val.accent  { color: var(--accent); }
         .stat-val.success { color: var(--success); }
 
@@ -599,23 +601,16 @@
         .toast.error   { background: linear-gradient(135deg,#ef4444,#dc2626); box-shadow: 0 12px 32px rgba(239,68,68,.4); }
 
         /* ── FOOTER ── */
-        .site-footer { max-width: 540px; margin: 0 auto; padding: 0 14px 40px; }
+        .site-footer { max-width: 540px; margin: 0 auto; padding: 4px 14px 36px; }
         .footer-inner {
-            background: linear-gradient(135deg,#7c3aed,#5b21b6);
-            border-radius: 20px; padding: 20px 22px;
+            border-top: 1px solid #ede8f9;
+            padding-top: 18px;
             display: flex; align-items: center; justify-content: space-between;
             flex-wrap: wrap; gap: 8px;
-            box-shadow: 0 8px 28px rgba(124,58,237,.3);
-            position: relative; overflow: hidden;
         }
-        .footer-inner::before {
-            content: ''; position: absolute; top: -30px; right: -30px;
-            width: 140px; height: 140px; border-radius: 50%;
-            background: rgba(255,255,255,.06); pointer-events: none;
-        }
-        .footer-brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; font-style: italic; color: white; letter-spacing: -.01em; }
-        .footer-badge { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); color: rgba(255,255,255,.9); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border-radius: 100px; }
-        .footer-copy { font-size: 11px; color: rgba(255,255,255,.45); width: 100%; font-weight: 300; }
+        .footer-brand { font-family: 'DM Serif Display', serif; font-size: 1rem; font-style: italic; color: var(--ink); letter-spacing: -.01em; }
+        .footer-badge { background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.18); color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px; border-radius: 100px; }
+        .footer-copy { font-size: 11px; color: #9580c1; width: 100%; font-weight: 300; }
 
         /* ── EMPTY ── */
         .empty { text-align: center; padding: 32px 16px; }
@@ -834,39 +829,19 @@
                 <div class="card-body">
                     <div class="stats-grid">
                         <div class="stat-box stat-box-pres">
-                            <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">
-                                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#a78bfa,#7c3aed);display:flex;align-items:center;justify-content:center">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M21 18v1a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v1h-9a2 2 0 00-2 2v8a2 2 0 002 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-                                </div>
-                                <div class="stat-lbl stat-lbl-pres">Presupuesto</div>
-                            </div>
+                            <div class="stat-lbl stat-lbl-pres">Presupuesto</div>
                             <div class="stat-val stat-val-pres" id="st-pres">S/ —</div>
                         </div>
                         <div class="stat-box stat-box-gast">
-                            <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">
-                                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#fb923c,#e8634a);display:flex;align-items:center;justify-content:center">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-9.8-3h11.8c.75 0 1.41-.41 1.75-1.03L22 8H6L4.27 4H1v2h2l3.6 7.59L5.25 16c-.16.28-.25.61-.25.96C5 18.1 5.9 19 7 19h14v-2H7.42c-.13 0-.25-.11-.25-.25l.03-.12.9-1.63z"/></svg>
-                                </div>
-                                <div class="stat-lbl stat-lbl-gast">Gastado</div>
-                            </div>
+                            <div class="stat-lbl stat-lbl-gast">Gastado</div>
                             <div class="stat-val stat-val-gast" id="st-gast">S/ 0</div>
                         </div>
                         <div class="stat-box stat-box-disp">
-                            <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">
-                                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#34d399,#10b981);display:flex;align-items:center;justify-content:center">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-                                </div>
-                                <div class="stat-lbl stat-lbl-disp">Disponible</div>
-                            </div>
+                            <div class="stat-lbl stat-lbl-disp">Disponible</div>
                             <div class="stat-val stat-val-disp" id="st-disp">S/ —</div>
                         </div>
                         <div class="stat-box stat-box-pct">
-                            <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">
-                                <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#fbbf24,#d97706);display:flex;align-items:center;justify-content:center">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
-                                </div>
-                                <div class="stat-lbl stat-lbl-pct">% Usado</div>
-                            </div>
+                            <div class="stat-lbl stat-lbl-pct">% Usado</div>
                             <div class="stat-val stat-val-pct" id="st-pct">0%</div>
                         </div>
                     </div>
@@ -1254,33 +1229,18 @@ function doLogout() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════
-//  INIT APP (Versión Segura)
+//  INIT APP
 // ═══════════════════════════════════════════════════════════════
 async function initApp() {
     const u = S.usuario;
-    
-    // 1. Calcular iniciales
     const ini = u.nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-    
-    // 2. Inyectar datos solo si los elementos existen en el HTML
-    const navAv = document.getElementById('nav-av');
-    if (navAv) navAv.textContent = ini;
-
-    const navNm = document.getElementById('nav-nm');
-    if (navNm) navNm.textContent = u.nombre.split(' ')[0];
-
-    const cfgNombre = document.getElementById('cfg-nombre');
-    if (cfgNombre) cfgNombre.textContent = u.nombre;
-
-    const cfgEmail = document.getElementById('cfg-email');
-    if (cfgEmail) cfgEmail.textContent = u.email;
-
-    // 3. Mostrar la app
+    document.getElementById('nav-av').textContent = ini;
+    const nmEl = document.getElementById('nav-nm');
+    if (nmEl) nmEl.textContent = u.nombre.split(' ')[0];
+    document.getElementById('cfg-nombre').textContent = u.nombre;
+    document.getElementById('cfg-email').textContent  = u.email;
     showPage('pg-app');
     switchTab('registro');
-    
-    // 4. Cargar datos
     await Promise.all([loadPeriodos(), loadCategorias()]);
 }
 
@@ -1563,10 +1523,10 @@ async function renderReporte() {
             const DEFAULT_CFG = { color:'#7c3aed', bg:'rgba(124,58,237,.08)', border:'rgba(124,58,237,.18)', iconBg:'linear-gradient(135deg,#a78bfa,#7c3aed)', icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>` };
 
             const STATE_CFG = {
-                safe:   { lbl:'OK',       fill:'linear-gradient(90deg,#10b981,#34d399)', badgeBg:'#e6f5ef', badgeCol:'#2d7a58' },
-                warn:   { lbl:'Moderado', fill:'linear-gradient(90deg,#f59e0b,#fcd34d)', badgeBg:'#fef4e4', badgeCol:'#a06a10' },
-                danger: { lbl:'Crítico',  fill:'linear-gradient(90deg,#ef4444,#f87171)', badgeBg:'#fdeaea', badgeCol:'#922b21' },
-                over:   { lbl:'Excedido', fill:'repeating-linear-gradient(90deg,#ef4444 0,#f87171 6px,#ef4444 12px)', badgeBg:'#fdeaea', badgeCol:'#922b21' },
+                safe:   { lbl:'OK',       fill:'linear-gradient(90deg,#10b981,#34d399)', badgeBg:'#10b981', badgeCol:'#ffffff' },
+                warn:   { lbl:'Moderado', fill:'linear-gradient(90deg,#f59e0b,#fcd34d)', badgeBg:'#f59e0b', badgeCol:'#ffffff' },
+                danger: { lbl:'Crítico',  fill:'linear-gradient(90deg,#ef4444,#f87171)', badgeBg:'#ef4444', badgeCol:'#ffffff' },
+                over:   { lbl:'Excedido', fill:'repeating-linear-gradient(90deg,#ef4444 0,#f87171 6px,#ef4444 12px)', badgeBg:'#7c3aed', badgeCol:'#ffffff' },
             };
 
             // Orden fijo de macros
@@ -1614,8 +1574,8 @@ async function renderReporte() {
                         <span style="font-size:11px;color:var(--ink-muted);font-weight:500">
                             ${pct}% usado · disponible <strong style="color:${cfg.color}">${fmt(m.disponible)}</strong>
                         </span>
-                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:100px;background:${st.badgeBg};color:${st.badgeCol}">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;letter-spacing:.04em;padding:5px 13px;border-radius:100px;background:${st.badgeBg};color:${st.badgeCol};box-shadow:0 2px 8px ${st.badgeBg}55">
+                            <span style="width:6px;height:6px;border-radius:50%;background:${st.badgeCol};opacity:.8;flex-shrink:0"></span>
                             ${st.lbl}
                         </span>
                     </div>
